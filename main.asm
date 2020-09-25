@@ -43,7 +43,10 @@ include macros.asm
  errormov db 'Error no se puede realizar el movimiento',0ah,0dh,'$'
  saltoLinea db 0ah,0dh,'$'
  
-
+ cargaBlanca db '1'
+ cargaNegro db '2'
+ cargaVacio db '3'
+ cargaIndefinida db '4'
 row1 db 000, 011, 000, 011, 000, 011, 000, 011
 row2 db 011, 000, 011, 000, 011, 000, 011, 000
 row3 db 000, 011, 000, 011, 000, 011, 000, 011
@@ -58,6 +61,9 @@ bufferLectura db 6 dup('$')
 rutaArchivo db 'reporte.html',00h
 bufferEscritura db 200 dup('$')
 handleFichero dw ?
+handleCarga dw ?
+
+rutaCarga db 'carga.txt',00h
 
 
 .code 
@@ -100,6 +106,7 @@ handleFichero dw ?
 	    	getChar
 	    	jmp MENU    
 		SALIR: 
+            generarCarga rutaCarga, handleCarga
 			MOV ah,4ch
 			int 21h
 	main endp

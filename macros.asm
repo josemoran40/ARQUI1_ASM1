@@ -630,6 +630,50 @@ generarFichas macro arreglo, handle
 endm
 
 
+;----------------------  GENERAR CARGA -----------------------------
+generarCarga macro rutaArchivo, handle
+    crearArchivo rutaArchivo, handle
+    abrirArchivo rutaArchivo, handle
+    generarCargaFila row1,handle
+    generarCargaFila row2,handle
+    generarCargaFila row3,handle
+    generarCargaFila row4,handle
+    generarCargaFila row5,handle
+    generarCargaFila row6,handle
+    generarCargaFila row7,handle
+    generarCargaFila row8,handle
+endm
+
+generarCargaFila macro arreglo, handle
+LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera
+    mov cx,8
+    xor si,si
+    CICLO: 
+        cmp arreglo[si],100
+        je printNegra
+        cmp arreglo[si],011
+        je printBlanca
+        cmp arreglo[si],001
+        je printCeleste
+        escribirArchivo SIZEOF cargaIndefinida, cargaIndefinida, handle
+        jmp Afuera
+        printBlanca:
+            escribirArchivo SIZEOF cargaBlanca, cargaBlanca, handle
+            jmp Afuera
+        
+        printNegra:
+            escribirArchivo SIZEOF cargaNegro, cargaNegro, handle
+            jmp Afuera
+        printCeleste:
+            escribirArchivo SIZEOF cargaVacio, cargaVacio, handle
+        
+        Afuera:
+        
+        inc si
+        dec cx
+    JNE CICLO
+endm
+
 ;----------------------- MOVIEMIENTO DE ARCHIVOS ----------------------
 crearArchivo macro buffer,handle
     mov ah,3ch
@@ -666,4 +710,19 @@ abrirArchivo macro ruta,handle
     int 21h
     mov handle,ax
     ;jc ErrorAbrir
+endm
+
+
+leerArchivo macro numbytes, buffer, handle
+    PUSH cx
+    leer numbytes, buffer, handle
+    POP cx
+endm
+leer macro numbytes,buffer,handle
+    mov ah,3fh
+    mov bx,handle
+    mov cx,numbytes
+    lea dx,buffer
+    int 21h
+    jc ErrorLeer
 endm
