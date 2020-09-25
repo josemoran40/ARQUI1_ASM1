@@ -38,8 +38,11 @@ include macros.asm
  htmlblanca db '<img src = "P1/blanca.png">'
  htmlnegra db '<img src = "P1/negra.png">'
  htmlceleste db '<img src = "P1/celeste.png">'
-
-
+ msgjugador1 db 'Turno de jugador 1',0ah,0dh,'$'
+ msgjugador2 db 'Turno de jugador 2',0ah,0dh,'$'
+ errormov db 'Error no se puede realizar el movimiento',0ah,0dh,'$'
+ saltoLinea db 0ah,0dh,'$'
+ 
 
 row1 db 000, 011, 000, 011, 000, 011, 000, 011
 row2 db 011, 000, 011, 000, 011, 000, 011, 000
@@ -49,12 +52,13 @@ row5 db 000, 001, 000, 001, 000, 001, 000, 001
 row6 db 100, 000, 100, 000, 100, 000, 100, 000
 row7 db 000, 100, 000, 100, 000, 100, 000, 100
 row8 db 100, 000, 100, 000, 100, 000, 100, 000
-
+bufferTemporal db 6 dup('$')
 bufferLectura db 6 dup('$')
 
 rutaArchivo db 'reporte.html',00h
 bufferEscritura db 200 dup('$')
 handleFichero dw ?
+
 
 .code 
 ;================== SEGMENTO DE CODIGO ===========================
@@ -76,7 +80,9 @@ handleFichero dw ?
             printTablero
             ;generarReporte htmlopen,htmlclose,htmltable,htmltablecl,htmltr,htmltrcl,htmltd,htmltdcl, rutaArchivo, handleFichero
             turnoJugador1
+            printTablero
             turnoJugador2
+            printTablero
             jmp MENU           
         OPCION2:
             print n2 

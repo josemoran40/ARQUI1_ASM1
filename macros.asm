@@ -10,8 +10,8 @@ ETIQUETA: ;etiqueta
 endm
 
 getChar macro
-mov ah,01h
-int 21h
+    mov ah,01h
+    int 21h
 endm
 ;----------------------------- IMPRIMIR TABLERO ----------------------------------
 printTablero macro
@@ -69,6 +69,7 @@ endm
 
 ;-------------------------LEER TEXTO ----------------------------------------------
 getTexto macro buffer
+    LOCAL CONTINUE, FIN
     PUSH SI
     PUSH AX
 
@@ -89,50 +90,212 @@ getTexto macro buffer
 endm
 
 ;-------------------------------------- JUEGO ---------------------------------------
-
-turnoJugador2 macro 
-LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir
+turnoJugador1 macro 
+LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, correcto, RealizarMov, VerificarComer, CualComer, CualComer2,PuedeComer, Comer
+    print msgjugador1
     getTexto bufferLectura;a2,b3
     cmp bufferLectura[4],036
     je Menu
 
-    accederFila bufferLectura, 4,3
-    pop dx
-    mov ax, dx
-    cmp al, 001
-    je VERIFICAR2
+    xor ax, ax
+    mov al,bufferLectura[1]
+    mov ah,bufferLectura[4] 
+    cmp al, ah
+    jb VERIFICAR2
     jmp salir
     VERIFICAR2:
+        xor ax, ax
+        mov al , bufferLectura[1]
+        sub al, bufferLectura[4] 
+        cmp al, -1
+        je VERIFICAR3
+        jmp VerificarComer
+    
+    VERIFICAR3:        
+        accederFila bufferLectura, 4,3
+        pop dx
+        mov ax, dx
+        cmp al, 001
+        je CONTINUAR
+        jmp salir
+
+    CONTINUAR:    
+        accederFila bufferLectura, 1,0
+        pop dx
+        mov ax, dx
+        cmp al, 011
+        je RealizarMov
+        jmp salir
+    
+    RealizarMov:
+        moverFicha bufferLectura, 4,3,011
+        moverFicha bufferLectura, 1,0,001
+        jmp correcto
+
+    VerificarComer:
+        xor ax, ax
+        mov al , bufferLectura[1]
+        sub al, bufferLectura[4] 
+        cmp al, -2
+        jne salir
+        ;---------------------- Comparar si la resta es -2
+        xor ax, ax
+        mov al , bufferLectura[0]
+        sub al, bufferLectura[3]
+        cmp al, -2 
+        je CualComer
+        ;---------------------- Comparar si la resta es 2
+        xor ax, ax        
+        mov al , bufferLectura[0]
+        sub al, bufferLectura[3]
+        cmp al, 2
+        je CualComer2
+        jmp salir
+    CualComer:
+        mov bh , bufferLectura[1]
+        add bh, 1
+        mov bl , bufferLectura[3]
+        sub bl, 1
+        mov bufferTemporal[0], bl
+        mov bufferTemporal[1], bh
+        jmp PuedeComer 
+
+    CualComer2:   
+        mov bh , bufferLectura[1]
+        add bh, 1
+        mov bl , bufferLectura[3]
+        add bl, 1
+        mov bufferTemporal[0], bl
+        mov bufferTemporal[1], bh
+    
+    PuedeComer:
+        print bufferTemporal
+        print saltoLinea
+        print saltoLinea
+        accederFila bufferTemporal, 1,0
+        pop dx
+        mov ax, dx
+        cmp al, 100
+        je Comer
+        jmp salir
+
+    Comer:
+        moverFicha bufferLectura, 4,3,011
+        moverFicha bufferLectura, 1,0,001
+        moverFicha bufferTemporal, 1,0,001
+        jmp correcto
+    salir:
+        print errormov
+    correcto:
+endm
+
+
+turnoJugador2 macro 
+LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, correcto, RealizarMov, VerificarComer, CualComer, CualComer2,PuedeComer, Comer
+    print msgjugador2
+    getTexto bufferLectura;a2,b3
+    cmp bufferLectura[4],036
+    je Menu
+
+    xor ax, ax
+    mov al,bufferLectura[1]
+    mov ah,bufferLectura[4] 
+    cmp al, ah
+    ja VERIFICAR2
+    jmp salir
+    VERIFICAR2:
+        xor ax, ax
+        mov al , bufferLectura[1]
+        sub al, bufferLectura[4] 
+        cmp al, 1
+        je VERIFICAR3
+        jmp VerificarComer
+    
+    VERIFICAR3:        
+        accederFila bufferLectura, 4,3
+        pop dx
+        mov ax, dx
+        cmp al, 001
+        je CONTINUAR
+        jmp salir
+
+    CONTINUAR:    
         accederFila bufferLectura, 1,0
         pop dx
         mov ax, dx
         cmp al, 100
-        je VERIFICAR3
+        je RealizarMov
         jmp salir
     
-    VERIFICAR3:
-        xor ax, ax
-        mov al,bufferLectura[1]
-        mov ah,bufferLectura[4] 
-        cmp al, ah    
-        ja CONTINUAR
-        jmp salir
-
-    CONTINUAR:
+    RealizarMov:
         moverFicha bufferLectura, 4,3,100
         moverFicha bufferLectura, 1,0,001
-        
-    salir:
+        jmp correcto
 
-    jmp Menu
+    VerificarComer:
+        xor ax, ax
+        mov al , bufferLectura[1]
+        sub al, bufferLectura[4] 
+        cmp al, 2
+        jne salir
+        ;---------------------- Comparar si la resta es -2
+        xor ax, ax
+        mov al , bufferLectura[0]
+        sub al, bufferLectura[3]
+        cmp al, -2 
+        je CualComer
+        ;---------------------- Comparar si la resta es 2
+        xor ax, ax        
+        mov al , bufferLectura[0]
+        sub al, bufferLectura[3]
+        cmp al, 2
+        je CualComer2
+        jmp salir
+    CualComer:
+        mov bh , bufferLectura[1]
+        sub bh, 1
+        mov bl , bufferLectura[3]
+        sub bl, 1
+        mov bufferTemporal[0], bl
+        mov bufferTemporal[1], bh
+        jmp PuedeComer 
+
+    CualComer2:   
+        mov bh , bufferLectura[1]
+        sub bh, 1
+        mov bl , bufferLectura[3]
+        add bl, 1
+        mov bufferTemporal[0], bl
+        mov bufferTemporal[1], bh
+    
+    PuedeComer:
+        print bufferTemporal
+        print saltoLinea
+        print saltoLinea
+        accederFila bufferTemporal, 1,0
+        pop dx
+        mov ax, dx
+        cmp al, 011
+        je Comer
+        jmp salir
+
+    Comer:
+        moverFicha bufferLectura, 4,3,100
+        moverFicha bufferLectura, 1,0,001
+        moverFicha bufferTemporal, 1,0,001
+        jmp correcto
+    salir:
+        print errormov
+    correcto:
     
 
 endm
 
 
 accederFila macro texto, num1,num2
-LOCAL f1,f2,f3,f4,f5,f6,f7, salir
-    ;print fn    
+LOCAL f1,f2,f3,f4,f5,f6,f7,f8, salir
+    print texto 
+    print saltoLinea   
     xor si,si
     mov si, num1  
     cmp texto[si], 49
@@ -149,39 +312,59 @@ LOCAL f1,f2,f3,f4,f5,f6,f7, salir
     je f6
     cmp texto[si], 55
     je f7
+    cmp texto[si], 56
+    je f8
     accederColumna texto, row8,num2
     jmp salir
     f1:
+    print n1
+    print saltoLinea
     accederColumna texto, row1,num2
     jmp salir
     f2:
+    print n2
+    print saltoLinea
     accederColumna texto, row2,num2
     jmp salir
     f3:
+    print n3
+    print saltoLinea
     accederColumna texto, row3,num2
     jmp salir
 
     f4:
+    print n4
+    print saltoLinea
     accederColumna texto, row4,num2
     jmp salir
 
     f5:
+    print n5
+    print saltoLinea
     accederColumna texto, row5,num2
     jmp salir
 
     f6:
+    print n6
+    print saltoLinea
     accederColumna texto, row6,num2
     jmp salir
 
     f7:
+    print n7
+    print saltoLinea
     accederColumna texto, row7,num2
+    jmp salir
 
+    f8:
+    print n8
+    print saltoLinea
     salir:
 endm
 
 
 accederColumna macro texto, fila, num1
-LOCAL f1,f2,f3,f4,f5,f6,f7, salir
+LOCAL f1,f2,f3,f4,f5,f6,f7,f8 ,salir
 
     xor si,si
     mov si, num1
@@ -200,47 +383,67 @@ LOCAL f1,f2,f3,f4,f5,f6,f7, salir
     je f6
     cmp texto[si], 71
     je f7
-    mov dl,fila[7]
-    PUSH dx
+    cmp texto[si], 72
+    je f8
     jmp salir
-    f1:    
+    f1:   
+    print n1
+    print saltoLinea 
     mov dl,fila[0]
     PUSH dx
     jmp salir
     f2:
+    print n2
+    print saltoLinea
     mov dl,fila[1]
     PUSH dx
     jmp salir
     f3:
+    print n3
+    print saltoLinea
     mov dl,fila[2]
     PUSH dx
     jmp salir
 
     f4:
+    print n4
+    print saltoLinea
     mov dl,fila[3]
     PUSH dx
     jmp salir
 
     f5:
+    print n5
+    print saltoLinea
     mov dl,fila[4]
     PUSH dx
     jmp salir
 
     f6:
+    print n6
+    print saltoLinea
     mov dl,fila[5]
     PUSH dx
     jmp salir
 
     f7:
+    print n7    
+    print saltoLinea
     mov dl,fila[6]
     PUSH dx
-
+    jmp salir
+    f8:    
+    print n8
+    print saltoLinea
+    mov dl,fila[7]
+    PUSH dx
     salir:
 endm
 
 ;--------------------------MOVER FICHA -------------------------------------
 moverFicha macro texto, num1,num2,valor
 LOCAL f1,f2,f3,f4,f5,f6,f7, salir
+    
     ;print fn    
     xor si,si
     mov si, num1  
@@ -258,39 +461,39 @@ LOCAL f1,f2,f3,f4,f5,f6,f7, salir
     je f6
     cmp texto[si], 55
     je f7
-    print n8
+    ;print n8
     mover texto, row8,num2, valor
     jmp salir
     f1:
-    print n1
+    ;print n1
     mover texto, row1,num2, valor
     jmp salir
     f2:
-    print n2
+    ;print n2
     mover texto, row2,num2, valor
     jmp salir
     f3:
-    print n3
+    ;print n3
     mover texto, row3,num2, valor
     jmp salir
 
     f4:
-    print n4
+    ;print n4
     mover texto, row4,num2, valor
     jmp salir
 
     f5:
-    print n5
+    ;print n5
     mover texto, row5,num2, valor
     jmp salir
 
     f6:
-    print n6
+    ;print n6
     mover texto, row6,num2, valor
     jmp salir
 
     f7:
-    print n7
+    ;print n7
     mover texto, row7,num2, valor
 
     salir:
@@ -321,36 +524,36 @@ LOCAL f1,f2,f3,f4,f5,f6,f7, salir
     mov fila[7],valor
     jmp salir
     f1:   
-    print n1 
+    ;print n1 
     mov fila[0],valor
     jmp salir
     f2:
-    print n2
+    ;print n2
     mov fila[1],valor
     jmp salir
     f3:
-    print n3
+    ;print n3
     mov fila[2],valor
     jmp salir
 
     f4:
-    print n4
-    print n4
+    ;print n4
+    ;print n4
     mov fila[3],valor
     jmp salir
 
     f5:
-    print n5
+    ;print n5
     mov fila[4],valor
     jmp salir
 
     f6:
-    print n6
+    ;print n6
     mov fila[5],valor
     jmp salir
 
     f7:
-    print n7
+    ;print n7
     mov fila[6],valor
 
     salir:
