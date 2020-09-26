@@ -45,7 +45,7 @@ endm
 
 ;------------------------- IMPRIMIR ARREGLO -------------------------------
 printRow macro arreglo
-LOCAL CICLO, printBlanca, printNegra, Afuera
+LOCAL CICLO, printBlanca, printNegra, Afuera, printReinaBlanca, printReinaNegra
 mov cx,8
 xor si,si
 CICLO: 
@@ -53,12 +53,24 @@ CICLO:
     je printNegra
     cmp arreglo[si],011
     je printBlanca
+    cmp arreglo[si],111
+    je printReinaNegra
+    cmp arreglo[si],010
+    je printReinaBlanca
     print vacio
     jmp Afuera
     printBlanca:
         print fb
         jmp Afuera
+        
+    printReinaBlanca:
+        print rb
+        jmp Afuera
     
+    
+    printReinaNegra:
+        print rn
+        jmp Afuera
     printNegra:
         print fn
     
@@ -90,12 +102,84 @@ getTexto macro buffer
 endm
 
 ;-------------------------------------- JUEGO ---------------------------------------
-turnoJugador1 macro 
-LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, correcto, RealizarMov, VerificarComer, CualComer, CualComer2,PuedeComer, Comer
-    print msgjugador1
-    getTexto bufferLectura;a2,b3
+iniciarJuego macro
+    LOCAL EXIT, salir, SAV, INICIO,T1,JUGAR, mostrar, salir, guardar, imprimiTurnoJ2, imprimio
+
+    INICIO:
+    
+        cmp bufferJuego[0],50
+        je imprimiTurnoJ2
+        print msgjugador1
+        jmp imprimio
+
+        imprimiTurnoJ2:
+            print msgjugador2
+        
+        imprimio:
+            printTablero
+
+        getTexto bufferLectura
+        EXIT:
+            cmp bufferLectura[0],69
+            jne SAV
+            cmp bufferLectura[1],88
+            jne SAV
+            cmp bufferLectura[2],73
+            jne SAV
+            cmp bufferLectura[3],84
+            je salir
+        
+        SAV:
+            cmp bufferLectura[0],83
+            jne SHOW
+            cmp bufferLectura[1],65
+            jne SHOW
+            cmp bufferLectura[2],86
+            jne SHOW
+            cmp bufferLectura[3],69
+            je guardar
+        
+        SHOW:
+            cmp bufferLectura[0],83
+            jne JUGAR
+            cmp bufferLectura[1],72
+            jne JUGAR
+            cmp bufferLectura[2],79
+            jne JUGAR
+            cmp bufferLectura[3],87
+            je mostrar
+
+        JUGAR:
+            cmp bufferJuego[0],49
+            je T1
+            turnoJugador2 bufferLectura
+            mov bufferJuego[0],49
+            jmp continuar
+
+        T1:
+            turnoJugador1 bufferLectura
+            mov bufferJuego[0],50
+            jmp continuar
+
+
+        guardar:
+            generarCarga rutaCarga, handleCarga
+            jmp continuar
+
+        mostrar:
+            generarReporte htmlopen,htmlclose,htmltable,htmltablecl,htmltr,htmltrcl,htmltd,htmltdcl, rutaArchivo, handleFichero
+
+        continuar:
+    jmp INICIO
+
+    salir:
+endm
+
+turnoJugador1 macro bufferLectura
+LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, correcto, RealizarMov, VerificarComer, CualComer, CualComer2,PuedeComer, Comer, CORONAR
+    
     cmp bufferLectura[4],036
-    je Menu
+    je salir
 
     xor ax, ax
     mov al,bufferLectura[1]
@@ -124,11 +208,16 @@ LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, 
         pop dx
         mov ax, dx
         cmp al, 011
-        je RealizarMov
+        je CORONAR
         jmp salir
     
+    CORONAR:
+        mov al, 011
+        cmp bufferLectura[4],56
+        jne RealizarMov
+        mov al, 010;Ficha de corona 
     RealizarMov:
-        moverFicha bufferLectura, 4,3,011
+        moverFicha bufferLectura, 4,3,al
         moverFicha bufferLectura, 1,0,001
         jmp correcto
 
@@ -176,11 +265,18 @@ LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, 
         pop dx
         mov ax, dx
         cmp al, 100
-        je Comer
+        je CORONARCOMER
         jmp salir
 
+    
+   CORONARCOMER:
+        mov al, 011
+        cmp bufferLectura[4],56
+        jne Comer
+        mov al, 010;Ficha de corona 
+ 
     Comer:
-        moverFicha bufferLectura, 4,3,011
+        moverFicha bufferLectura, 4,3,al
         moverFicha bufferLectura, 1,0,001
         moverFicha bufferTemporal, 1,0,001
         jmp correcto
@@ -190,12 +286,10 @@ LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, 
 endm
 
 
-turnoJugador2 macro 
-LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, correcto, RealizarMov, VerificarComer, CualComer, CualComer2,PuedeComer, Comer
-    print msgjugador2
-    getTexto bufferLectura;a2,b3
-    cmp bufferLectura[4],036
-    je Menu
+turnoJugador2 macro bufferLectura
+LOCAL printBlanca, printNegra,CORONARCOMER, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, correcto, RealizarMov, VerificarComer, CualComer, CualComer2,PuedeComer, Comer, CORONAR
+     cmp bufferLectura[4],036
+    je salir
 
     xor ax, ax
     mov al,bufferLectura[1]
@@ -224,11 +318,16 @@ LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, 
         pop dx
         mov ax, dx
         cmp al, 100
-        je RealizarMov
+        je CORONAR
         jmp salir
     
+    CORONAR:
+        mov al, 100
+        cmp bufferLectura[4],49
+        jne RealizarMov
+        mov al, 111;Ficha de corona 
     RealizarMov:
-        moverFicha bufferLectura, 4,3,100
+        moverFicha bufferLectura, 4,3,al
         moverFicha bufferLectura, 1,0,001
         jmp correcto
 
@@ -276,11 +375,18 @@ LOCAL printBlanca, printNegra, Afuera, CONTINUAR, VERIFICAR2, VERIFICAR3,salir, 
         pop dx
         mov ax, dx
         cmp al, 011
-        je Comer
+        je CORONARCOMER
         jmp salir
 
+    
+   CORONARCOMER:
+        mov al, 100
+        cmp bufferLectura[4],49
+        jne Comer
+        mov al, 111;Ficha de corona 
+ 
     Comer:
-        moverFicha bufferLectura, 4,3,100
+        moverFicha bufferLectura, 4,3,al
         moverFicha bufferLectura, 1,0,001
         moverFicha bufferTemporal, 1,0,001
         jmp correcto
@@ -358,6 +464,7 @@ LOCAL f1,f2,f3,f4,f5,f6,f7,f8, salir
 
     f8:
     print n8
+    accederColumna texto, row8,num2
     print saltoLinea
     salir:
 endm
@@ -565,6 +672,12 @@ generarReporte macro htmlopen,htmlclose,htmltable,htmltablecl,htmltr,htmltrcl,ht
     crearArchivo rutaArchivo, handle
     abrirArchivo rutaArchivo, handle
     escribirArchivo SIZEOF htmlopen, htmlopen, handle
+    escribirArchivo SIZEOF htmlh1,htmlh1,handle
+    generarFecha bufferFecha
+    generarHora bufferHora
+    escribirArchivo SIZEOF bufferFecha, bufferFecha, handle
+    escribirArchivo SIZEOF bufferHora, bufferHora, handle
+    escribirArchivo SIZEOF htmlh1cl,htmlh1cl,handle
     escribirArchivo SIZEOF htmltable, htmltable, handle
     escribirArchivo SIZEOF htmltr, htmltr, handle
     generarFichas row1, handle
@@ -594,11 +707,11 @@ generarReporte macro htmlopen,htmlclose,htmltable,htmltablecl,htmltr,htmltrcl,ht
     escribirArchivo SIZEOF htmltrcl, htmltrcl, handle
     escribirArchivo SIZEOF htmltablecl, htmltablecl, handle
     escribirArchivo SIZEOF htmlclose, htmlclose, handle
-
+    cerrarArchivo handle
 endm
 
 generarFichas macro arreglo, handle
-    LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera
+    LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera,printReinaNegra,printReinaBlanca
     mov cx,8
     xor si,si
     CICLO: 
@@ -607,6 +720,10 @@ generarFichas macro arreglo, handle
         je printNegra
         cmp arreglo[si],011
         je printBlanca
+        cmp arreglo[si],111
+        je printReinaNegra
+        cmp arreglo[si],010
+        je printReinaBlanca
         cmp arreglo[si],000
         je printCeleste
         escribirArchivo SIZEOF htmlvacio, htmlvacio, handle
@@ -618,6 +735,15 @@ generarFichas macro arreglo, handle
         printNegra:
             escribirArchivo SIZEOF htmlnegra, htmlnegra, handle
             jmp Afuera
+            
+        printReinaNegra:
+            escribirArchivo SIZEOF htmlReinaNegra, htmlReinaNegra, handle
+            jmp Afuera
+            
+        printReinaBlanca:
+            escribirArchivo SIZEOF htmlReinaBlanca, htmlReinaBlanca, handle
+            jmp Afuera
+
         printCeleste:
             escribirArchivo SIZEOF htmlceleste, htmlceleste, handle
         
@@ -642,10 +768,11 @@ generarCarga macro rutaArchivo, handle
     generarCargaFila row6,handle
     generarCargaFila row7,handle
     generarCargaFila row8,handle
+    cerrarArchivo handle
 endm
 
 generarCargaFila macro arreglo, handle
-LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera
+LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera,printReinaBlanca,printReinaNegra
     mov cx,8
     xor si,si
     CICLO: 
@@ -653,6 +780,10 @@ LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera
         je printNegra
         cmp arreglo[si],011
         je printBlanca
+        cmp arreglo[si],111
+        je printReinaNegra
+        cmp arreglo[si],010
+        je printReinaBlanca
         cmp arreglo[si],001
         je printCeleste
         escribirArchivo SIZEOF cargaIndefinida, cargaIndefinida, handle
@@ -664,6 +795,12 @@ LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera
         printNegra:
             escribirArchivo SIZEOF cargaNegro, cargaNegro, handle
             jmp Afuera
+        printReinaNegra:
+            escribirArchivo SIZEOF cargaReinaNegro, cargaReinaNegro, handle
+            jmp Afuera
+        printReinaBlanca:
+            escribirArchivo SIZEOF cargaReinaBlanca, cargaReinaBlanca, handle
+            jmp Afuera
         printCeleste:
             escribirArchivo SIZEOF cargaVacio, cargaVacio, handle
         
@@ -674,6 +811,67 @@ LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera
     JNE CICLO
 endm
 
+cargaTablero macro rutaArchivo, handle, buffer
+    abrirArchivo rutaArchivo, handle
+    leerArchivo 8, buffer, handle
+    cargarFila row1, buffer
+    leerArchivo 8, buffer, handle
+    cargarFila row2, buffer
+    leerArchivo 8, buffer, handle
+    cargarFila row3, buffer
+    leerArchivo 8, buffer, handle
+    cargarFila row4, buffer
+    leerArchivo 8, buffer, handle
+    cargarFila row5, buffer
+    leerArchivo 8, buffer, handle
+    cargarFila row6, buffer
+    leerArchivo 8, buffer, handle
+    cargarFila row7, buffer
+    leerArchivo 8, buffer, handle
+    cargarFila row8, buffer
+    cerrarArchivo handle
+ endm
+
+cargarFila macro arreglo,  buffer
+
+LOCAL CICLO, printBlanca, printNegra,printCeleste, Afuera,printReinaNegra,printReinaBlanca
+     mov cx,8
+    xor si,si
+    CICLO: 
+        cmp buffer[si],50
+        je printNegra
+        cmp buffer[si],49
+        je printBlanca
+        cmp buffer[si],51
+        je printCeleste
+        cmp buffer[si],53
+        je printReinaNegra
+        cmp buffer[si],54
+        je printReinaBlanca
+        mov arreglo[si],000
+        jmp Afuera
+        printBlanca:
+            mov arreglo[si],011
+            jmp Afuera
+        
+        printNegra:
+            mov arreglo[si],100
+            jmp Afuera
+        printReinaNegra:
+            mov arreglo[si],111
+            jmp Afuera
+        printReinaBlanca:
+            mov arreglo[si],010
+            jmp Afuera
+        printCeleste:
+            mov arreglo[si],001
+        
+        Afuera:
+        
+        inc si
+        dec cx
+    JNE CICLO
+endm
 ;----------------------- MOVIEMIENTO DE ARCHIVOS ----------------------
 crearArchivo macro buffer,handle
     mov ah,3ch
@@ -725,4 +923,67 @@ leer macro numbytes,buffer,handle
     lea dx,buffer
     int 21h
     jc ErrorLeer
+endm
+
+generarFecha macro buffer
+    xor ax, ax
+    xor bx, bx
+    mov ah, 2ah             
+    int 21h
+    mov di,0
+    mov al,dl
+    convertirBCD buffer
+    inc di           
+    mov al, dh
+    convertirBCD buffer
+    inc di                
+    mov buffer[di], 32h
+    inc di  
+    mov buffer[di], 30h 
+    inc di 
+    mov buffer[di], 32h
+    inc di  
+    mov buffer[di], 30h  
+endm
+
+generarHora macro buffer
+    xor     ax, ax
+    xor     bx, bx
+    mov     ah, 2ch
+    int     21h
+    mov     di,0
+    mov     al, ch
+    convertirBCD buffer
+    inc     di  
+    mov     al, cl
+    convertirBCD buffer
+    inc     di
+    mov     al, dh
+    convertirBCD buffer
+endm
+
+convertirBCD macro buffer     
+    push dx
+    xor dx,dx
+    mov dl,al
+    xor ax,ax
+    mov bl,0ah
+    mov al,dl
+    div bl
+    push ax
+    add al,30h
+    mov buffer[di], al        
+    inc di
+    pop ax
+    add ah,30h
+    mov buffer[di], ah
+    inc di
+    pop dx
+endm
+
+
+cerrarArchivo macro handle
+    mov ah,3eh
+    mov handle,bx
+    int 21h
 endm

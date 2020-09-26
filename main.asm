@@ -20,16 +20,18 @@ include macros.asm
  n8 db '8 ','$'
  fb db 'FB|','$'
  fn db 'FN|','$'
+ rb db 'RB|','$'
+ rn db 'RN|','$'
  vacio db '  |','$'
  salto db 0ah,0dh,'$'
  letras db '   A  B  C  D  E  F  G  H ',0ah,0dh,'$'
  msmError2 db 0ah,0dh,'Error al leer archivo','$'
  msmError3 db 0ah,0dh,'Error al crear archivo','$'
  msmError4 db 0ah,0dh,'Error al Escribir archivo','$'
- htmlopen db '<html><head><link rel="stylesheet" href="style.css"></head><body>',0ah,0dh
+ htmlopen db '<html><head><link rel="stylesheet" href="style.css"></head><body style="background-color: #393939">',0ah,0dh
  htmlclose db '</body></html>',0ah,0dh
- htmltable db '<table>',0ah,0dh
- htmltablecl db '</table>',0ah,0dh
+ htmltable db '<center><table>',0ah,0dh
+ htmltablecl db '</center></table>',0ah,0dh
  htmltr db '<tr style="width:80; height:80">',0ah,0dh
  htmltrcl db '</tr>',0ah,0dh
  htmltd db '<td>'
@@ -37,27 +39,41 @@ include macros.asm
  htmlvacio db '<img src = "P1/gris.png">'
  htmlblanca db '<img src = "P1/blanca.png">'
  htmlnegra db '<img src = "P1/negra.png">'
+ htmlReinaNegra db '<img src = "P1/reinanegra.png">'
+ htmlReinaBlanca db '<img src = "P1/reinablanca.png">'
  htmlceleste db '<img src = "P1/celeste.png">'
+ htmlh1 db '<center><h1 style="color:white">'
+ htmlh1cl db '</h1></center>'
  msgjugador1 db 'Turno de jugador 1',0ah,0dh,'$'
  msgjugador2 db 'Turno de jugador 2',0ah,0dh,'$'
  errormov db 'Error no se puede realizar el movimiento',0ah,0dh,'$'
  saltoLinea db 0ah,0dh,'$'
  
+ 
  cargaBlanca db '1'
  cargaNegro db '2'
  cargaVacio db '3'
  cargaIndefinida db '4'
+ cargaReinaBlanca db '5'
+ cargaReinaNegro db '6'
+
+bufferJuego db '1','$'
+
 row1 db 000, 011, 000, 011, 000, 011, 000, 011
 row2 db 011, 000, 011, 000, 011, 000, 011, 000
 row3 db 000, 011, 000, 011, 000, 011, 000, 011
 row4 db 001, 000, 001, 000, 001, 000, 001, 000
 row5 db 000, 001, 000, 001, 000, 001, 000, 001
+;row6 db 001, 000, 001, 000, 001, 000, 001, 000
+;row7 db 000, 001, 000, 001, 000, 001, 000, 001
 row6 db 100, 000, 100, 000, 100, 000, 100, 000
-row7 db 000, 100, 000, 100, 000, 100, 000, 100
-row8 db 100, 000, 100, 000, 100, 000, 100, 000
+row7 db 000, 100, 000, 100, 000, 100, 000, 100  ; coronar blanca 010
+row8 db 100, 000, 100, 000, 100, 000, 100, 000 ; coronar negra 111
 bufferTemporal db 6 dup('$')
 bufferLectura db 6 dup('$')
-
+bufferLecturaCarga db 10 dup('$')
+bufferFecha db 12 dup('-')
+bufferHora db 8 dup(':')
 rutaArchivo db 'reporte.html',00h
 bufferEscritura db 200 dup('$')
 handleFichero dw ?
@@ -71,8 +87,8 @@ rutaCarga db 'carga.txt',00h
 	main proc		
         print intro
         print intro2
-        print opciones
         MENU:
+        print opciones
             getChar
             cmp al,49
             je OPCION1
@@ -83,15 +99,11 @@ rutaCarga db 'carga.txt',00h
             jmp MENU 
 
         OPCION1:
-            printTablero
-            ;generarReporte htmlopen,htmlclose,htmltable,htmltablecl,htmltr,htmltrcl,htmltd,htmltdcl, rutaArchivo, handleFichero
-            turnoJugador1
-            printTablero
-            turnoJugador2
-            printTablero
+            print saltoLinea
+            iniciarJuego
             jmp MENU           
         OPCION2:
-            print n2 
+            cargaTablero rutaCarga, handleCarga, bufferLecturaCarga  
             jmp MENU
 	    ErrorLeer:
 	    	print msmError2
@@ -106,7 +118,6 @@ rutaCarga db 'carga.txt',00h
 	    	getChar
 	    	jmp MENU    
 		SALIR: 
-            generarCarga rutaCarga, handleCarga
 			MOV ah,4ch
 			int 21h
 	main endp
