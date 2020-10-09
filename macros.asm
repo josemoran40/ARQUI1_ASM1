@@ -126,7 +126,7 @@ iniciarJuego macro
             jne SAV
             cmp bufferLectura[2],73
             jne SAV
-            cmp bufferLectura[3],84
+            cmp bufferLectura[3],84 
             je salir
         
         SAV:
@@ -163,16 +163,19 @@ iniciarJuego macro
 
 
         guardar:
+            getTexto rutaCarga
             generarCarga rutaCarga, handleCarga
-            jmp continuar
+            print savemsg
+            jmp salir
 
         mostrar:
             generarReporte htmlopen,htmlclose,htmltable,htmltablecl,htmltr,htmltrcl,htmltd,htmltdcl, rutaArchivo, handleFichero
-
+            print htmlmsg
         continuar:
     jmp INICIO
 
     salir:
+        print juegoTerminado
 endm
 
 turnoJugador1 macro bufferLectura
@@ -400,8 +403,6 @@ endm
 
 accederFila macro texto, num1,num2
 LOCAL f1,f2,f3,f4,f5,f6,f7,f8, salir
-    print texto 
-    print saltoLinea   
     xor si,si
     mov si, num1  
     cmp texto[si], 49
@@ -420,52 +421,35 @@ LOCAL f1,f2,f3,f4,f5,f6,f7,f8, salir
     je f7
     cmp texto[si], 56
     je f8
-    accederColumna texto, row8,num2
     jmp salir
     f1:
-    print n1
-    print saltoLinea
     accederColumna texto, row1,num2
     jmp salir
     f2:
-    print n2
-    print saltoLinea
     accederColumna texto, row2,num2
     jmp salir
     f3:
-    print n3
-    print saltoLinea
     accederColumna texto, row3,num2
     jmp salir
 
     f4:
-    print n4
-    print saltoLinea
     accederColumna texto, row4,num2
     jmp salir
 
     f5:
-    print n5
-    print saltoLinea
     accederColumna texto, row5,num2
     jmp salir
 
     f6:
-    print n6
-    print saltoLinea
     accederColumna texto, row6,num2
     jmp salir
 
     f7:
-    print n7
-    print saltoLinea
     accederColumna texto, row7,num2
     jmp salir
 
     f8:
-    print n8
     accederColumna texto, row8,num2
-    print saltoLinea
     salir:
 endm
 
@@ -494,54 +478,38 @@ LOCAL f1,f2,f3,f4,f5,f6,f7,f8 ,salir
     je f8
     jmp salir
     f1:   
-    print n1
-    print saltoLinea 
     mov dl,fila[0]
     PUSH dx
     jmp salir
     f2:
-    print n2
-    print saltoLinea
     mov dl,fila[1]
     PUSH dx
     jmp salir
     f3:
-    print n3
-    print saltoLinea
     mov dl,fila[2]
     PUSH dx
     jmp salir
 
     f4:
-    print n4
-    print saltoLinea
     mov dl,fila[3]
     PUSH dx
     jmp salir
 
     f5:
-    print n5
-    print saltoLinea
     mov dl,fila[4]
     PUSH dx
     jmp salir
 
     f6:
-    print n6
-    print saltoLinea
     mov dl,fila[5]
     PUSH dx
     jmp salir
 
     f7:
-    print n7    
-    print saltoLinea
     mov dl,fila[6]
     PUSH dx
     jmp salir
     f8:    
-    print n8
-    print saltoLinea
     mov dl,fila[7]
     PUSH dx
     salir:
@@ -672,6 +640,9 @@ generarReporte macro htmlopen,htmlclose,htmltable,htmltablecl,htmltr,htmltrcl,ht
     crearArchivo rutaArchivo, handle
     abrirArchivo rutaArchivo, handle
     escribirArchivo SIZEOF htmlopen, htmlopen, handle
+    escribirArchivo SIZEOF htmlh1,htmlh1,handle
+    escribirArchivo SIZEOF datosJose, datosJose, handle
+    escribirArchivo SIZEOF htmlh1cl,htmlh1cl,handle
     escribirArchivo SIZEOF htmlh1,htmlh1,handle
     generarFecha bufferFecha
     generarHora bufferHora
@@ -815,6 +786,7 @@ cargaTablero macro rutaArchivo, handle, buffer
     abrirArchivo rutaArchivo, handle
     leerArchivo 8, buffer, handle
     cargarFila row1, buffer
+    print n8
     leerArchivo 8, buffer, handle
     cargarFila row2, buffer
     leerArchivo 8, buffer, handle

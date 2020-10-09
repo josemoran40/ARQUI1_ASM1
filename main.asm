@@ -44,19 +44,21 @@ include macros.asm
  htmlceleste db '<img src = "P1/celeste.png">'
  htmlh1 db '<center><h1 style="color:white">'
  htmlh1cl db '</h1></center>'
- msgjugador1 db 'Turno de jugador 1',0ah,0dh,'$'
- msgjugador2 db 'Turno de jugador 2',0ah,0dh,'$'
+ msgjugador1 db 'Turno de fichas blancas',0ah,0dh,'$'
+ msgjugador2 db 'Turno de fichas negras',0ah,0dh,'$'
  errormov db 'Error no se puede realizar el movimiento',0ah,0dh,'$'
  saltoLinea db 0ah,0dh,'$'
- 
- 
+ htmlmsg db 'Archivo html generado correctamente',0ah,0dh,'$'
+ savemsg db 'Archivo guardado correctamente',0ah,0dh,'$'
+ juegoTerminado db 'Juego terminado', 0ah,0dh,'$'
+ datosJose db 'JOSE EDUARDO MORAN REYES 201807455'
  cargaBlanca db '1'
  cargaNegro db '2'
  cargaVacio db '3'
  cargaIndefinida db '4'
  cargaReinaBlanca db '5'
  cargaReinaNegro db '6'
-
+ pedirRuta db 'Ingrese el nombre del archivo:',0ah,0dh,'$'
 bufferJuego db '1','$'
 
 row1 db 000, 011, 000, 011, 000, 011, 000, 011
@@ -64,8 +66,6 @@ row2 db 011, 000, 011, 000, 011, 000, 011, 000
 row3 db 000, 011, 000, 011, 000, 011, 000, 011
 row4 db 001, 000, 001, 000, 001, 000, 001, 000
 row5 db 000, 001, 000, 001, 000, 001, 000, 001
-;row6 db 001, 000, 001, 000, 001, 000, 001, 000
-;row7 db 000, 001, 000, 001, 000, 001, 000, 001
 row6 db 100, 000, 100, 000, 100, 000, 100, 000
 row7 db 000, 100, 000, 100, 000, 100, 000, 100  ; coronar blanca 010
 row8 db 100, 000, 100, 000, 100, 000, 100, 000 ; coronar negra 111
@@ -79,8 +79,8 @@ bufferEscritura db 200 dup('$')
 handleFichero dw ?
 handleCarga dw ?
 
-rutaCarga db 'carga.txt',00h
-
+rutaCarga db 200 dup(0),0
+leerCarga db 200 dup(0),0
 
 .code 
 ;================== SEGMENTO DE CODIGO ===========================
@@ -103,7 +103,9 @@ rutaCarga db 'carga.txt',00h
             iniciarJuego
             jmp MENU           
         OPCION2:
-            cargaTablero rutaCarga, handleCarga, bufferLecturaCarga  
+            print pedirRuta
+            getTexto leerCarga
+            cargaTablero leerCarga, handleCarga, bufferLecturaCarga  
             jmp MENU
 	    ErrorLeer:
 	    	print msmError2
@@ -116,9 +118,14 @@ rutaCarga db 'carga.txt',00h
 		ErrorEscribir:
 	    	print msmError4
 	    	getChar
-	    	jmp MENU    
+	    	jmp MENU  
+        CloseError:
+            print errorclosef
+            jmp Initprogram  
 		SALIR: 
 			MOV ah,4ch
 			int 21h
 	main endp
 end
+
+
